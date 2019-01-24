@@ -1,10 +1,16 @@
 const koa = require("koa");
 const Router = require("koa-router");
 const mongoose = require("mongoose");
+const bodyParser = require("koa-bodyparser");
 
 // 实例化 koa
 const app = new koa();
 const router = new Router();
+
+app.use(bodyParser());
+
+// 引入users.js
+const users = require("./routes/api/users");
 
 // 路由
 router.get("/", async ctx => {
@@ -26,6 +32,9 @@ mongoose
   .catch(err => {
     console.log(err);
   });
+
+// 配置路由地址
+router.use("/api/users", users);
 
 // 配置路由
 app.use(router.routes()).use(router.allowedMethods());

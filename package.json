@@ -19,7 +19,9 @@
   },
   "homepage": "https://github.com/yuedehuanxiang/koa-app#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "koa": "^2.6.2",
+    "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "mongoose": "^5.4.6"
   }
