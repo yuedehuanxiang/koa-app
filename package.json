@@ -20,9 +20,15 @@
   "homepage": "https://github.com/yuedehuanxiang/koa-app#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "gravatar": "^1.8.0",
+    "jsonwebtoken": "^8.4.0",
     "koa": "^2.6.2",
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "mongoose": "^5.4.6"
+  },
+  "devDependencies": {
+    "koa-passport": "^4.1.1",
+    "passport-jwt": "^4.0.0"
   }
 }
