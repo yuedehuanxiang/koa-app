@@ -11,6 +11,10 @@ const router = new Router();
 // 引入User
 const User = require("../../models/User");
 
+// 引入input验证
+const validateRegisterInput = require("../../validation/register");
+const validateLoginInput = require("../../validation/login");
+
 /**
  * @route GET api/users/test
  * @desc 测试接口地址
@@ -28,6 +32,14 @@ router.get("/test", async ctx => {
  */
 router.post("/register", async ctx => {
   // console.log(ctx.request.body);
+  const { errors, isValid } = validateRegisterInput(ctx.request.body);
+
+  // 判断是否验证通过
+  if (!isValid) {
+    ctx.status = 400;
+    ctx.body = errors;
+    return;
+  }
   // 存储到数据库
   const findResult = await User.find({ email: ctx.request.body.email });
   // console.log(findResult);
@@ -62,6 +74,14 @@ router.post("/register", async ctx => {
  * @access public
  */
 router.post("/login", async ctx => {
+  const { errors, isValid } = validateLoginInput(ctx.request.body);
+
+  // 判断是否验证通过
+  if (!isValid) {
+    ctx.status = 400;
+    ctx.body = errors;
+    return;
+  }
   // 查询
   const findResult = await User.find({ email: ctx.request.body.email });
   const user = findResult[0];
