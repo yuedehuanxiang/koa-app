@@ -4,9 +4,12 @@ const passport = require("koa-passport");
 const router = new Router();
 // 引入模板
 const Profile = require("../../models/Profile");
+const User = require("../../models/User");
 
 // 引入验证
 const validateProfileInput = require("../../validation/profile");
+const validateExperienceInput = require("../../validation/experience");
+const validateEducationInput = require("../../validation/education");
 
 /**
  * @route GET api/profile/test
@@ -151,13 +154,173 @@ router.get("/all", async ctx => {
  * @access private
  */
 router.post("/experience", passport.authenticate("jwt", { session: false }), async ctx => {
-  // const { errors, isValid } = validateProfileInput(ctx.request.body);
-  // // 判断是否验证通过
-  // if (!isValid) {
-  //   ctx.status = 400;
-  //   ctx.body = errors;
-  //   return;
-  // }
+  const { errors, isValid } = validateExperienceInput(ctx.request.body);
+  // 判断是否验证通过
+  if (!isValid) {
+    ctx.status = 400;
+    ctx.body = errors;
+    return;
+  }
+  const profileFields = {};
+  profileFields.experience = [];
+  const profile = await Profile.find({ user: ctx.state.user.id });
+  if (profile.length > 0) {
+    const newExp = {
+      title: ctx.request.body.title,
+      current: ctx.request.body.current,
+      company: ctx.request.body.company,
+      location: ctx.request.body.location,
+      from: ctx.request.body.from,
+      to: ctx.request.body.to,
+      description: ctx.request.body.description
+    };
+    profileFields.experience.unshift(newExp);
+    // console.log(profileFields);
+    const profileUpdate = await Profile.update(
+      { user: ctx.state.user.id },
+      { $push: { experience: profileFields.experience } },
+      { $sort: 1 }
+    );
+    // ctx.body = profileUpdate;
+    if (profileUpdate.ok == 1) {
+      const profile = await Profile.find({ user: ctx.state.user.id }).populate("user", ["name", "avatar"]);
+      if (profile) {
+        ctx.status = 200;
+        ctx.body = profile;
+      }
+    }
+  } else {
+    errors.noprofile = "没有该用户的信息";
+    ctx.status = 404;
+    ctx.body = errors;
+  }
+});
+
+/**
+ * @route POST api/profile/education
+ * @desc 教育接口地址
+ * @access private
+ */
+router.post("/education", passport.authenticate("jwt", { session: false }), async ctx => {
+  const { errors, isValid } = validateEducationInput(ctx.request.body);
+  // 判断是否验证通过
+  if (!isValid) {
+    ctx.status = 400;
+    ctx.body = errors;
+    return;
+  }
+  const profileFields = {};
+  profileFields.education = [];
+  const profile = await Profile.find({ user: ctx.state.user.id });
+  if (profile.length > 0) {
+    const newEdu = {
+      school: ctx.request.body.school,
+      degree: ctx.request.body.degree,
+      current: ctx.request.body.current,
+      fieldofstudy: ctx.request.body.fieldofstudy,
+      from: ctx.request.body.from,
+      to: ctx.request.body.to,
+      description: ctx.request.body.description
+    };
+    profileFields.education.unshift(newEdu);
+    // console.log(profileFields);
+
+    const profileUpdate = await Profile.update(
+      { user: ctx.state.user.id },
+      { $push: { education: profileFields.education } },
+      { $sort: 1 }
+    );
+    // ctx.body = profileUpdate;
+    if (profileUpdate.ok == 1) {
+      const profile = await Profile.find({ user: ctx.state.user.id }).populate("user", ["name", "avatar"]);
+      if (profile) {
+        ctx.status = 200;
+        ctx.body = profile;
+      }
+    }
+  } else {
+    errors.noprofile = "没有该用户的信息";
+    ctx.status = 404;
+    ctx.body = errors;
+  }
+});
+
+/**
+ * @route DELETE api/profile/experience?exp_id=xxxx
+ * @desc 删除工作经验接口地址
+ * @access private
+ */
+router.delete("/experience", passport.authenticate("jwt", { session: false }), async ctx => {
+  // 拿到id
+  const exp_id = ctx.query.exp_id;
+  // console.log(exp_id);
+  // 查询
+  const profile = await Profile.find({ user: ctx.state.user.id });
+  if (profile[0].experience.length > 0) {
+    // 找元素下标
+    const removeIndex = profile[0].experience.map(item => item.id).indexOf(exp_id);
+    // 删除
+    profile[0].experience.splice(removeIndex, 1);
+    // 更新数据库
+    const profileUpdate = await Profile.findOneAndUpdate(
+      { user: ctx.state.user.id },
+      { $set: profile[0] },
+      { new: true }
+    );
+    ctx.body = profileUpdate;
+  } else {
+    ctx.status = 404;
+    ctx.body = { errors: "没有任何数据" };
+  }
+});
+
+/**
+ * @route DELETE api/profile/education?edu_id=xxxx
+ * @desc 删除教育经历接口地址
+ * @access private
+ */
+router.delete("/education", passport.authenticate("jwt", { session: false }), async ctx => {
+  // 拿到id
+  const edu_id = ctx.query.edu_id;
+  // console.log(edu_id);
+  // 查询
+  const profile = await Profile.find({ user: ctx.state.user.id });
+  if (profile[0].education.length > 0) {
+    // 找元素下标
+    const removeIndex = profile[0].education.map(item => item.id).indexOf(edu_id);
+    // 删除
+    profile[0].education.splice(removeIndex, 1);
+    // 更新数据库
+    const profileUpdate = await Profile.findOneAndUpdate(
+      { user: ctx.state.user.id },
+      { $set: profile[0] },
+      { new: true }
+    );
+    ctx.body = profileUpdate;
+  } else {
+    ctx.status = 404;
+    ctx.body = { errors: "没有任何数据" };
+  }
+});
+
+/**
+ * @route DELETE api/profile
+ * @desc 删除整个用户接口地址
+ * @access private
+ */
+router.delete("/", passport.authenticate("jwt", { session: false }), async ctx => {
+  const profile = await Profile.deleteOne({ user: ctx.state.user.id });
+  // User
+  if (profile.ok == 1) {
+    const user = await User.deleteOne({ _id: ctx.state.user.id });
+    if (user.ok == 1) {
+      ctx.status = 200;
+      ctx.body = { success: true };
+    }
+  } else {
+    ctx.status = 404;
+    ctx.body = { error: "profile不存在" };
+  }
 });
 
 module.exports = router.routes();
