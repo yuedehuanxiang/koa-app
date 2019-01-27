@@ -14,6 +14,8 @@ app.use(bodyParser());
 const users = require("./routes/api/users");
 // 引入profile.js
 const profile = require("./routes/api/profile");
+// 引入post.js
+const post = require("./routes/api/post");
 
 // 路由
 router.get("/", async ctx => {
@@ -45,6 +47,7 @@ require("./config/passport")(passport);
 // 配置路由地址
 router.use("/api/users", users);
 router.use("/api/profile", profile);
+router.use("/api/post", post);
 
 // 配置路由
 app.use(router.routes()).use(router.allowedMethods());
