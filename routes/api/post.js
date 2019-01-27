@@ -139,7 +139,7 @@ router.post("/like", passport.authenticate("jwt", { session: false }), async ctx
 
 /**
  * @route POST api/post/unlike？id=xxx
- * @desc 点赞接口地址
+ * @desc 取消点赞接口地址
  * @access private
  */
 router.post("/unlike", passport.authenticate("jwt", { session: false }), async ctx => {
@@ -164,6 +164,48 @@ router.post("/unlike", passport.authenticate("jwt", { session: false }), async c
     ctx.status = 404;
     ctx.body = { error: "profile 不存在" };
   }
+});
+
+/**
+ * @route POST api/post/comment？id=xxx
+ * @desc 评论接口地址
+ * @access private
+ */
+router.post("/comment", passport.authenticate("jwt", { session: false }), async ctx => {
+  const id = ctx.query.id;
+  const post = await Post.findById(id);
+  const newComment = {
+    text: ctx.request.body.text,
+    name: ctx.request.body.name,
+    avatar: ctx.request.body.avatar,
+    user: ctx.state.user.id
+  };
+  post.comments.unshift(newComment);
+  const postUpdate = await Post.findOneAndUpdate({ _id: id }, { $set: post }, { new: true });
+  ctx.body = postUpdate;
+});
+
+/**
+ * @route DELETE api/post/comment?id=xxx&comment_id=xxx
+ * @desc 删除评论接口地址
+ * @access private
+ */
+router.delete("/comment", passport.authenticate("jwt", { session: false }), async ctx => {
+  const id = ctx.query.id;
+  const comment_id = ctx.query.comment_id;
+
+  const post = await Post.findById(id);
+  const isComment = post.comments.filter(comment => comment._id.toString() === comment_id).length == 0;
+  if (isComment) {
+    ctx.status = 400;
+    ctx.body = { nocomment: "该评论不存在" };
+    return;
+  }
+  // 找到了该评论信息
+  const removeIndex = post.comments.map(item => item._id.toString()).indexOf(comment_id);
+  post.comments.splice(removeIndex, 1);
+  const postUpdate = await Post.findOneAndUpdate({ _id: id }, { $set: post }, { new: true });
+  ctx.body = postUpdate;
 });
 
 module.exports = router.routes();
