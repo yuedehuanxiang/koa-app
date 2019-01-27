@@ -26,11 +26,10 @@
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "mongoose": "^5.4.6",
-    "nodemon": "^1.18.9"
-  },
-  "devDependencies": {
+    "nodemon": "^1.18.9",
     "koa-passport": "^4.1.1",
     "passport-jwt": "^4.0.0",
     "validator": "^10.11.0"
-  }
+  },
+  "devDependencies": {}
 }
