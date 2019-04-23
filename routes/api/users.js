@@ -22,7 +22,7 @@ const validateLoginInput = require("../../validation/login");
  */
 router.get("/test", async ctx => {
   ctx.status = 200;
-  ctx.body = { msg: "users works..." };
+  ctx.body = { msg: "users works......" };
 });
 
 /**
@@ -47,7 +47,11 @@ router.post("/register", async ctx => {
     ctx.status = 500;
     ctx.body = { email: "邮箱已经被占用" };
   } else {
-    const avatar = gravatar.url(ctx.request.body.email, { s: "200", r: "pg", d: "mm" });
+    const avatar = gravatar.url(ctx.request.body.email, {
+      s: "200",
+      r: "pg",
+      d: "mm"
+    });
     const newUser = new User({
       name: ctx.request.body.name,
       email: ctx.request.body.email,
@@ -112,13 +116,17 @@ router.post("/login", async ctx => {
  * @desc 用户信息接口地址 返回用户信息
  * @access private
  */
-router.get("/current", passport.authenticate("jwt", { session: false }), async ctx => {
-  ctx.body = {
-    id: ctx.state.user.id,
-    name: ctx.state.user.name,
-    email: ctx.state.user.email,
-    avatar: ctx.state.user.avatar
-  };
-});
+router.get(
+  "/current",
+  passport.authenticate("jwt", { session: false }),
+  async ctx => {
+    ctx.body = {
+      id: ctx.state.user.id,
+      name: ctx.state.user.name,
+      email: ctx.state.user.email,
+      avatar: ctx.state.user.avatar
+    };
+  }
+);
 
 module.exports = router.routes();
